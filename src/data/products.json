@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "title": "Taladro",
+    "description": "Taladro percutor 750W",
+    "code": "TAL-750",
+    "price": 99999,
+    "status": true,
+    "stock": 5,
+    "category": "herramientas",
+    "thumbnails": [
+      "/imgs/taladro1.jpg"
+    ]
+  }
+]

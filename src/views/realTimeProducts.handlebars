@@ -1,0 +1,81 @@
+<section class="catalog">
+  <h1>Productos</h1>
+
+  <form class="search" method="get" action="/productos">
+    <input type="search" name="q" value="{{q}}" placeholder="Buscar por nombre o marca"/>
+    <button type="submit">Buscar</button>
+  </form>
+
+  {{!-- ===== Detalle (cuando viene "product") ===== --}}
+  {{#if product}}
+    <article class="product-detail">
+      <div class="pd-gallery">
+        <img
+          src="{{product.hero}}"
+          alt="{{product.title}}"
+          class="pd-hero"
+        />
+        <div class="pd-thumbs">
+          {{#each product.thumbs}}
+            <img
+              src="{{this}}"
+              alt="{{../product.title}} miniatura"
+            />
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="pd-info">
+        <h1>{{product.title}}</h1>
+        <p class="pd-brand">{{product.brand}}</p>
+        <p class="pd-price">{{currency product.price}}</p>
+        <p class="pd-rating">⭐ {{product.rating}} · Stock: {{product.stock}}</p>
+        <p class="pd-desc">{{product.description}}</p>
+
+        <div class="pd-actions">
+          <button class="btn" data-add
+            data-id="{{product.id}}"
+            data-slug="{{product.slug}}"
+            data-title="{{product.title}}"
+            data-price="{{product.price}}"
+            data-image="{{product.hero}}"
+          >Agregar al carrito</button>
+
+          <a href="/carrito" class="btn secondary">Ver carrito</a>
+        </div>
+      </div>
+    </article>
+  {{/if}}
+
+  {{!-- ===== Grid de productos ===== --}}
+  <div class="grid-cards">
+    {{#each products}}
+      <article class="card">
+        <a href="/producto/{{slug}}" class="card-media">
+          <img
+            src="{{image}}"
+            alt="{{title}}"
+            loading="lazy"
+          />
+        </a>
+
+        <div class="card-body">
+          <h3 class="card-title"><a href="/producto/{{slug}}">{{title}}</a></h3>
+          <p class="card-brand">{{brand}}</p>
+          <p class="card-price">{{currency price}}</p>
+
+          <div class="card-actions">
+            <a class="btn ghost" href="/producto/{{slug}}">Ver</a>
+            <button class="btn" data-add
+              data-id="{{id}}"
+              data-slug="{{slug}}"
+              data-title="{{title}}"
+              data-price="{{price}}"
+              data-image="{{image}}"
+            >Agregar</button>
+          </div>
+        </div>
+      </article>
+    {{/each}}
+  </div>
+</section>

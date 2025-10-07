@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="/">
+        <span class="brand-top">Herramienta</span>
+        <span class="brand-bottom">del Sur</span>
+      </a>
+      <nav class="links">
+        <a href="/" class="{{#if (eq page 'home')}}active{{/if}}">Inicio</a>
+        <a href="/productos" class="{{#if (eq page 'productos')}}active{{/if}}">Productos</a>
+        <a href="/carrito" class="{{#if (eq page 'carrito')}}active{{/if}}">Carrito 🛒 <span id="cart-count" class="badge">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {{{body}}}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap"><small>Hecho por Hernán — {{year}}</small></div>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/shop.js" defer></script>
+</body>
+</html>

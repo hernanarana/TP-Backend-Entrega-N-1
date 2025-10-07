@@ -1,15 +1,54 @@
 [
   {
     "id": 1,
-    "title": "Taladro",
-    "description": "Taladro percutor 750W",
-    "code": "TAL-750",
-    "price": 99999,
-    "status": true,
-    "stock": 5,
-    "category": "herramientas",
-    "thumbnails": [
-      "/imgs/taladro1.jpg"
-    ]
+    "slug": "taladro-percutor-850w",
+    "title": "Taladro Percutor 850W",
+    "brand": "MakForce",
+    "price": 129999,
+    "rating": 4.7,
+    "stock": 12,
+    "image": "/img/taladro_1.jpg",
+    "images": ["/img/taladro_1.jpg", "/img/taladro_2.jpg", "/img/taladro_3.jpg"],
+    "short": "Taladro percutor con velocidad variable y reversa.",
+    "description": "Mandril 13mm, selector percutor y empuñadura soft-grip."
+  },
+  {
+    "id": 2,
+    "slug": "amoladora-recta-900w",
+    "title": "Amoladora Recta 900W",
+    "brand": "Steelline",
+    "price": 159999,
+    "rating": 4.6,
+    "stock": 9,
+    "image": "/img/amoladora_1.jpg",
+    "images": ["/img/amoladora_1.jpg", "/img/amoladora_2.jpg", "/img/amoladora_3.jpg"],
+    "short": "Compacta y precisa para terminaciones finas.",
+    "description": "Control de velocidad y protección térmica. Para desbaste y corte."
+  },
+  {
+    "id": 3,
+    "slug": "llave-impacto-1-2-720n",
+    "title": "Llave de Impacto 1/2” 720N·m",
+    "brand": "ProTorque",
+    "price": 189999,
+    "rating": 4.8,
+    "stock": 7,
+    "image": "/img/impacto_1.jpg",
+    "images": ["/img/impacto_1.jpg", "/img/impacto_2.jpg", "/img/impacto_3.jpg"],
+    "short": "Potencia para aflojar tornillos clavados.",
+    "description": "4 modos de torque, gatillo progresivo y anillo de fricción."
+  },
+  {
+    "id": 4,
+    "slug": "sierra-circular-1500w",
+    "title": "Sierra Circular 1500W",
+    "brand": "EdgeCut",
+    "price": 139999,
+    "rating": 4.5,
+    "stock": 10,
+    "image": "/img/sierra_1.jpg",
+    "images": ["/img/sierra_1.jpg", "/img/sierra_2.jpg", "/img/sierra_3.jpg"],
+    "short": "Cortes limpios en madera y MDF.",
+    "description": "Disco 7-1/4\", guía paralela, base de aluminio, ángulo 0–45°."
   }
 ]

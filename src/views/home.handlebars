@@ -1,0 +1,7 @@
+<h2>Home</h2>
+<ul>
+  {{#each products}}
+    <li><b>{{this.title}}</b> ${{this.price}} stock: {{this.stock}} <code>{{this.id}}</code></li>
+  {{/each}}
+</ul>
+<p><a href="/realtimeproducts">Ir a realtime</a></p>

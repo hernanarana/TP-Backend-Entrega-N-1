@@ -1,54 +1,109 @@
-const fs = require('fs');
-const path = require('path');
-const ProductManager = require('./ProductManager');
+// src/managers/CartManager.js
+import fs from "fs/promises";
+import path from "path";
 
-class CartManager {
-  constructor(fileName = 'carts.json') {
-    this.filePath = path.join(__dirname, '..', 'data', fileName);
-    this.#ensureFile();
-    this.products = new ProductManager(); 
+export default class CartManager {
+  constructor(filePath) {
+    this.file = filePath; // ej: .../src/data/carts.json
   }
 
-  #ensureFile() {
-    const dir = path.dirname(this.filePath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (!fs.existsSync(this.filePath)) fs.writeFileSync(this.filePath, '[]');
+  // --- utils ---
+  async #read() {
+    try {
+      const txt = await fs.readFile(this.file, "utf-8");
+      return JSON.parse(txt || "[]");
+    } catch (e) {
+      if (e.code === "ENOENT") {
+        await this.#write([]);
+        return [];
+      }
+      throw e;
+    }
   }
 
-  #readAll() { return JSON.parse(fs.readFileSync(this.filePath, 'utf-8') || '[]'); }
-  #writeAll(data) { fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2)); }
-  #nextId(items) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1; }
-
-  createCart() {
-    const carts = this.#readAll();
-    const newCart = { id: this.#nextId(carts), products: [] };
-    carts.push(newCart);
-    this.#writeAll(carts);
-    return newCart;
+  async #write(data) {
+    const dir = path.dirname(this.file);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(this.file, JSON.stringify(data, null, 2));
   }
 
-  getById(id) {
-    return this.#readAll().find(c => String(c.id) === String(id)) || null;
+  #newId() {
+    return globalThis.crypto?.randomUUID?.() || String(Date.now());
   }
 
-  addProduct(cid, pid) {
-    const carts = this.#readAll();
-    const idx = carts.findIndex(c => String(c.id) === String(cid));
-    if (idx === -1) { const e = new Error('Carrito no encontrado'); e.status = 404; throw e; }
+  // --- API pública ---
+  async getCarts() {
+    return await this.#read();
+  }
 
-    
-    const prod = this.products.getById(pid);
-    if (!prod) { const e = new Error('Producto no existe'); e.status = 404; throw e; }
-
-    const cart = carts[idx];
-    const line = cart.products.find(p => String(p.product) === String(pid));
-    if (line) line.quantity += 1;
-    else cart.products.push({ product: Number(pid), quantity: 1 });
-
-    carts[idx] = cart;
-    this.#writeAll(carts);
+  async createCart() {
+    const carts = await this.#read();
+    const cart = { id: this.#newId(), products: [] };
+    carts.push(cart);
+    await this.#write(carts);
     return cart;
   }
-}
 
-module.exports = CartManager;
+  async getCartById(id) {
+    const carts = await this.#read();
+    return carts.find(c => String(c.id) === String(id)) || null;
+  }
+
+  async addProductToCart(cid, pid, qty = 1) {
+    const carts = await this.#read();
+    const cidx = carts.findIndex(c => String(c.id) === String(cid));
+    if (cidx === -1) return null;
+
+    const cart = carts[cidx];
+    const pidx = cart.products.findIndex(i => String(i.product) === String(pid));
+    if (pidx === -1) {
+      cart.products.push({ product: String(pid), quantity: Number(qty) || 1 });
+    } else {
+      cart.products[pidx].quantity += Number(qty) || 1;
+    }
+
+    carts[cidx] = cart;
+    await this.#write(carts);
+    return cart;
+  }
+
+  async updateProductQty(cid, pid, qty) {
+    const carts = await this.#read();
+    const cidx = carts.findIndex(c => String(c.id) === String(cid));
+    if (cidx === -1) return null;
+
+    const cart = carts[cidx];
+    const pidx = cart.products.findIndex(i => String(i.product) === String(pid));
+    if (pidx === -1) return null;
+
+    cart.products[pidx].quantity = Number(qty);
+    carts[cidx] = cart;
+    await this.#write(carts);
+    return cart;
+  }
+
+  async removeProductFromCart(cid, pid) {
+    const carts = await this.#read();
+    const cidx = carts.findIndex(c => String(c.id) === String(cid));
+    if (cidx === -1) return null;
+
+    const cart = carts[cidx];
+    const before = cart.products.length;
+    cart.products = cart.products.filter(i => String(i.product) !== String(pid));
+    const changed = cart.products.length !== before;
+
+    carts[cidx] = cart;
+    await this.#write(carts);
+    return changed ? cart : null;
+  }
+
+  async clearCart(cid) {
+    const carts = await this.#read();
+    const cidx = carts.findIndex(c => String(c.id) === String(cid));
+    if (cidx === -1) return null;
+
+    carts[cidx].products = [];
+    await this.#write(carts);
+    return true;
+  }
+}

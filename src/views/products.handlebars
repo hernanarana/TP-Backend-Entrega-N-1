@@ -1,0 +1,76 @@
+<section class="products-page">
+  <header class="products-header">
+    <h1>Productos</h1>
+
+    <form class="filters" method="GET" action="/productos">
+      <label>Ordenar:</label>
+      <select name="sort" onchange="this.form.submit()">
+        <option value="-createdAt" {{#if (eq sort "-createdAt")}}selected{{/if}}>Nuevos</option>
+        <option value="price"      {{#if (eq sort "price")}}selected{{/if}}>Precio ↑</option>
+        <option value="-price"     {{#if (eq sort "-price")}}selected{{/if}}>Precio ↓</option>
+      </select>
+
+      <label style="margin-left:12px">Buscar:</label>
+      <input name="q" value="{{q}}" placeholder="tornillo, taladro..." />
+      <button type="submit">Filtrar</button>
+    </form>
+  </header>
+
+  {{#if payload.length}}
+    <ul class="grid">
+      {{#each payload}}
+        <li class="card">
+          <div class="thumb">
+            {{#if thumbnail}}
+              <img src="/img/{{thumbnail}}" alt="{{title}}">
+            {{else if thumbnails}}
+              {{#if (lookup thumbnails 0)}}
+                <img src="/img/{{lookup thumbnails 0}}" alt="{{title}}">
+              {{else}}
+                <div class="noimg">Sin imagen</div>
+              {{/if}}
+            {{else}}
+              <div class="noimg">Sin imagen</div>
+            {{/if}}
+          </div>
+
+          <div class="info">
+            <h3 class="title">{{title}}</h3>
+            <p class="desc">{{description}}</p>
+            <p class="meta">
+              <span class="price">{{currency price}}</span>
+              <span class="stock">Stock: {{stock}}</span>
+              {{#if category}}<span class="cat">· {{category}}</span>{{/if}}
+            </p>
+          </div>
+
+          <div class="actions">
+            <button class="add-to-cart" data-pid="{{_id}}">Agregar al carrito 🛒</button>
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p>No hay productos todavía.</p>
+  {{/if}}
+</section>
+
+<script src="/js/app.js"></script>
+
+<style>
+  .products-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 0 16px }
+  .filters { display:flex; align-items:center; gap:8px }
+  .grid { list-style:none; padding:0; margin:0; display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:14px }
+  .card { background:#0f172a; border:1px solid #1f2937; border-radius:12px; overflow:hidden; display:flex; flex-direction:column }
+  .thumb { background:#0b1220; height:160px; display:grid; place-items:center; }
+  .thumb img { width:100%; height:100%; object-fit:cover }
+  .noimg { color:#94a3b8; font-size:.9rem }
+  .info { padding:12px; gap:6px; display:flex; flex-direction:column }
+  .title { margin:0 }
+  .desc { margin:0; color:#94a3b8; min-height:2.2em }
+  .meta { display:flex; gap:10px; color:#cbd5e1; margin:.25rem 0 0 }
+  .price { font-weight:800; color:#a5b4fc }
+  .actions { display:flex; gap:8px; padding:12px }
+  .actions .add-to-cart { background:#3b82f6; color:white; border:0; border-radius:10px; padding:8px 12px; cursor:pointer }
+  .actions .add-to-cart:disabled { opacity:.6; cursor:not-allowed }
+</style>

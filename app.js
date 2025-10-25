@@ -1,76 +1,84 @@
-// app.js (raíz del proyecto)
-import express from "express";
-import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
-import { engine } from "express-handlebars";
-import path from "path";
-import { fileURLToPath } from "url";
+// app.js
+import 'dotenv/config';
+import express from 'express';
+import { engine } from 'express-handlebars';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Routers (según tu /src/routes)
-import productsRouter from "./src/routes/products.router.js";
-import cartsRouter from "./src/routes/carts.router.js"; // si aún no lo usás, igual puede quedar montado
+import { connectMongo } from './db/mongo.js';
+import productsRouter from './src/routes/products.router.js';
+import cartsRouter from './src/routes/carts.router.js';
+import { ProductModel } from './models/product.model.js'; // <-- IMPORT DEL MODELO
 
-// __dirname en ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// App & servidor HTTP + Socket.IO
 const app = express();
-const httpServer = createServer(app);
-const io = new SocketIOServer(httpServer);
 
-// ============ Handlebars ============
-app.engine(
-  "handlebars",
-  engine({
-    defaultLayout: "main",
-    layoutsDir: path.join(__dirname, "src", "views", "layouts"),
-    partialsDir: path.join(__dirname, "src", "views", "partials"),
-    helpers: {
-      eq: (a, b) => a === b,
-      currency: (v) =>
-        new Intl.NumberFormat("es-AR", {
-          style: "currency",
-          currency: "ARS",
-        }).format(v),
-    },
-  })
-);
-app.set("view engine", "handlebars");
-app.set("views", path.join(__dirname, "src", "views"));
+// Handlebars (si usás vistas)
+app.engine('handlebars', engine({
+  defaultLayout: 'main',
+  layoutsDir: path.join(__dirname, 'src', 'views', 'layouts'),
+  partialsDir: path.join(__dirname, 'src', 'views', 'partials'),
+  helpers: {
+    eq: (a, b) => a === b,
+    currency: v =>
+      new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
+        .format(v),
+  },
+}));
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, 'src', 'views'));
 
-// ============ Middlewares ============
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Estáticos: prioriza /public (raíz). Si querés también /src/public, dejé ambas líneas.
-app.use(express.static(path.join(__dirname, "public")));      // /public/js, /public/css, etc.
-app.use(express.static(path.join(__dirname, "src", "public"))); // opcional: /src/public/...
+// estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'src', 'public')));
 
-// ============ Rutas base ============
-app.get("/", (_req, res) => {
-  res.render("home", {
-    title: "Herramienta del Sur — Inicio",
-    page: "home",
+// vistas
+app.get('/', (_req, res) => {
+  res.render('home', {
+    title: 'Herramienta del Sur — Inicio',
+    page: 'home',
     year: new Date().getFullYear(),
   });
 });
 
-// Montaje de routers (¡esto es lo clave!)
-app.use("/", productsRouter); // /productos, /producto/:slug, /carrito, /api/products...
-app.use("/", cartsRouter);    // /api/carts o lo que tengas definido ahí
-
-// Salud simple (útil para probar que levanta)
-app.get("/healthz", (_req, res) => res.status(200).send("ok"));
-
-// ============ Socket.IO (placeholder) ============
-io.on("connection", (socket) => {
-  // Podés dejar hooks para realtime (stock, notificaciones, etc.)
-  // console.log("Cliente conectado", socket.id);
+// NUEVA PÁGINA: /productos (renderiza lista desde Mongo)
+app.get('/productos', async (_req, res) => {
+  try {
+    const productos = await ProductModel.find().lean();
+    res.render('products', {
+      title: 'Herramienta del Sur — Productos',
+      page: 'productos',
+      year: new Date().getFullYear(),
+      payload: productos, // productos disponibles en la vista
+    });
+  } catch (err) {
+    console.error('[Vistas] /productos error:', err);
+    res.status(500).send('Error cargando productos');
+  }
 });
 
-// ============ Start ============
+// API
+app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
+
+// health
+app.get('/healthz', (_req, res) => res.status(200).send('ok'));
+
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`✅ Servidor listo:  http://localhost:${PORT}`);
-});
+
+connectMongo()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`✅ Server: http://localhost:${PORT}`);
+      console.log('✅ Mongo conectado');
+    });
+  })
+  .catch(err => {
+    console.error('[Mongo] Error al conectar:', err.message);
+    process.exit(1);
+  });

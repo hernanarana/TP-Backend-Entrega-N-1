@@ -1,59 +1,93 @@
-// /src/routes/products.router.js
+// src/routes/products.router.js
 import { Router } from "express";
-import ProductManager from "../managers/ProductManager.js";
+
+import { ProductModel } from "../../models/product.model.js";
 
 const router = Router();
 
-/* ========== Catálogo con búsqueda ========== */
-router.get("/productos", async (req, res) => {
-  const q = req.query.q || "";
-  const items = await ProductManager.search(q);
-  res.render("realTimeProducts", {
-    title: "Catálogo — Herramienta del Sur",
-    page: "productos",
-    q,
-    products: items
-  });
+/** GET /api/products?limit=&page=&sort=&category=&status=&q= */
+router.get("/", async (req, res) => {
+  try {
+    const { limit = 10, page = 1, sort, category, status, q } = req.query;
+
+    const filter = {};
+    if (category) filter.category = category;
+    if (typeof status !== "undefined") filter.status = status === "true";
+    if (q) {
+      filter.$or = [
+        { title: new RegExp(q, "i") },
+        { description: new RegExp(q, "i") },
+        { code: new RegExp(q, "i") }
+      ];
+    }
+
+    const query = ProductModel.find(filter);
+    if (sort) query.sort(sort.replace(",", " ")); // ej: price o -price
+
+    const docs = await query
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit))
+      .lean();
+
+    const total = await ProductModel.countDocuments(filter);
+
+    res.json({
+      status: "success",
+      payload: docs,
+      page: Number(page),
+      total,
+      pages: Math.ceil(total / Number(limit))
+    });
+  } catch (err) {
+    res.status(500).json({ status: "error", error: err.message });
+  }
 });
 
-/* ========== Detalle de producto (con normalización de imágenes) ========== */
-router.get("/producto/:slug", async (req, res) => {
-  const item = await ProductManager.getBySlug(req.params.slug);
-  if (!item) return res.status(404).render("home", { title: "No encontrado" });
-
-  // 1) Tomamos [image, ...images], quitamos falsy, normalizamos a únicos (sin duplicados)
-  const imgs = [item.image, ...(item.images || [])].filter(Boolean);
-  const unique = [...new Map(imgs.map(src => [src, src])).values()];
-
-  // 2) Definimos hero y thumbs (si no hay nada, usamos un fallback de tu /public/img)
-  const hero = unique[0] || "/img/taladro_1.jpg";
-  const thumbs = unique.slice(1);
-
-  // 3) Render con hero y thumbs ya limpios
-  res.render("realTimeProducts", {
-    title: `${item.title} — Herramienta del Sur`,
-    page: "productos",
-    product: { ...item, hero, thumbs },
-    products: [item] // deja el array por si lo usás para relacionados
-  });
+/** GET /api/products/:pid */
+router.get("/:pid", async (req, res) => {
+  try {
+    const doc = await ProductModel.findById(req.params.pid).lean();
+    if (!doc) return res.status(404).json({ status: "error", error: "Producto no encontrado" });
+    res.json({ status: "success", payload: doc });
+  } catch (_err) {
+    res.status(400).json({ status: "error", error: "ID inválido" });
+  }
 });
 
-/* ========== Carrito ========== */
-router.get("/carrito", (_req, res) => {
-  res.render("cart", {
-    title: "Tu carrito — Herramienta del Sur",
-    page: "carrito"
-  });
+/** POST /api/products */
+router.post("/", async (req, res) => {
+  try {
+    const prod = await ProductModel.create(req.body);
+    res.status(201).json({ status: "success", payload: prod });
+  } catch (err) {
+    res.status(400).json({ status: "error", error: err.message });
+  }
 });
 
-/* ========== APIs opcionales ========== */
-router.get("/api/products", async (_req, res) => {
-  res.json(await ProductManager.getAll());
+/** PUT /api/products/:pid */
+router.put("/:pid", async (req, res) => {
+  try {
+    const updated = await ProductModel.findByIdAndUpdate(
+      req.params.pid,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updated) return res.status(404).json({ status: "error", error: "Producto no encontrado" });
+    res.json({ status: "success", payload: updated });
+  } catch (err) {
+    res.status(400).json({ status: "error", error: err.message });
+  }
 });
-router.get("/api/products/:slug", async (req, res) => {
-  const item = await ProductManager.getBySlug(req.params.slug);
-  if (!item) return res.status(404).json({ error: "not-found" });
-  res.json(item);
+
+/** DELETE /api/products/:pid */
+router.delete("/:pid", async (req, res) => {
+  try {
+    const deleted = await ProductModel.findByIdAndDelete(req.params.pid);
+    if (!deleted) return res.status(404).json({ status: "error", error: "Producto no encontrado" });
+    res.json({ status: "success", payload: deleted._id });
+  } catch (_err) {
+    res.status(400).json({ status: "error", error: "ID inválido" });
+  }
 });
 
 export default router;

@@ -1,0 +1,56 @@
+<section class="cart-page">
+  <h1>Carrito ({{cid}})</h1>
+
+  <div id="cart-empty" class="muted" style="display:none">Este carrito está vacío.</div>
+  <ul id="cart-list" class="cart-grid"></ul>
+
+  <div id="cart-summary" class="cart-summary" style="display:none">
+    <p>Total ítems: <strong id="cart-items-count">0</strong></p>
+    <p>Total: <strong id="cart-total">$ 0</strong></p>
+  </div>
+</section>
+
+<script type="module">
+  const cid = "{{cid}}";
+  const list   = document.getElementById('cart-list');
+  const empty  = document.getElementById('cart-empty');
+  const sumBox = document.getElementById('cart-summary');
+  const itemsCountEl = document.getElementById('cart-items-count');
+  const totalEl = document.getElementById('cart-total');
+  const money = v => Number(v||0).toLocaleString('es-AR',{style:'currency',currency:'ARS'});
+
+  async function render(){
+    const res = await fetch(`/api/carts/${cid}`);
+    if (!res.ok) { list.innerHTML = '<p class="error">No se pudo cargar el carrito.</p>'; return; }
+    const data = await res.json();
+    const items = data?.payload?.products || [];
+
+    if (!items.length) {
+      empty.style.display = '';
+      sumBox.style.display = 'none';
+      list.innerHTML = '';
+      return;
+    }
+    empty.style.display = 'none';
+    sumBox.style.display = '';
+
+    list.innerHTML = items.map(it => `
+      <li class="cart-row">
+        <img src="${it.product?.thumbnail || '/img/amoladora_1.jpg'}" alt="${it.product?.title}">
+        <div class="cart-info">
+          <div class="title">${it.product?.title || '(sin título)'}</div>
+          <div class="muted">${money(it.product?.price)} c/u</div>
+        </div>
+        <div class="muted">x${it.quantity}</div>
+        <div class="subtotal">${money((it.quantity||1)*(it.product?.price||0))}</div>
+      </li>
+    `).join('');
+
+    const totalQty = items.reduce((a, it) => a + (it.quantity||1), 0);
+    const total    = items.reduce((a, it) => a + (it.quantity||1)*(it.product?.price||0), 0);
+    itemsCountEl.textContent = totalQty;
+    totalEl.textContent = money(total);
+  }
+
+  render();
+</script>

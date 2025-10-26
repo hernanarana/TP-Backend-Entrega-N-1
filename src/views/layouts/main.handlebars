@@ -1,36 +1,51 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{title}}</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-  <!-- CSS global -->
-  <link rel="stylesheet" href="/css/styles.css" />
+  <!-- Título dinámico que se mostrará en la pestaña -->
+  <title>{{title}} | Herramienta del Sur</title>
 
-  <!-- JS global (inicializa carrito/contador en el navbar) -->
-  <script src="/js/app.js" defer></script>
+  <!-- ✅ Favicon agregado -->
+  <link rel="icon" type="image/png" href="/img/favicon.png"/>
+  <link rel="icon" href="/img/favicon.ico"/>
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/css/styles.css"/>
 </head>
-<body>
+
+<body class="theme-dark">
   <header class="site-header">
-    <div class="wrap nav">
-      <a class="brand" href="/"><span class="brand-top">Herramienta</span><span class="brand-bottom">del Sur</span></a>
-      <nav class="links">
-        <a href="/" class="{{#if (eq page 'home')}}active{{/if}}">Inicio</a>
-        <a href="/productos" class="{{#if (eq page 'productos')}}active{{/if}}">Productos</a>
-        <a href="/carrito" class="nav-cart-link {{#if (eq page 'carrito')}}active{{/if}}">
-          Carrito 🛒 <span id="cart-count" class="badge">0</span>
-        </a>
-      </nav>
-    </div>
+    <nav class="nav container">
+      <!-- Marca limpia, sin logo, solo texto -->
+      <a href="/" class="brand">
+        <span class="brand-text">Herramienta del Sur</span>
+      </a>
+
+      <ul class="menu">
+        <li><a href="/" class="{{#if (eq page 'home')}}active{{/if}}">Inicio</a></li>
+        <li><a href="/productos" class="{{#if (eq page 'productos')}}active{{/if}}">Productos</a></li>
+        <li>
+          <a href="/carrito" class="{{#if (eq page 'carrito')}}active{{/if}}">
+            Carrito <span id="cart-count" class="badge">0</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
   </header>
 
-  <main class="wrap">
+  <main class="container">
     {{{body}}}
   </main>
 
-  <footer class="footer">
-    <div class="wrap">Hecho por Hernán — {{year}}</div>
+  <footer class="site-footer container">
+    Hecho por Hernán — {{year}}
   </footer>
+
+  <!-- Scripts del front -->
+  <script type="module" src="/js/app.js"></script>
+  {{#if (eq page 'productos')}}<script type="module" src="/js/products-page.js"></script>{{/if}}
+  {{#if (eq page 'carrito')}}<script type="module" src="/js/cart-page.js"></script>{{/if}}
 </body>
 </html>

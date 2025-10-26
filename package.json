@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
-    "db:check": "node scripts/db-check.js"
+    "db:check": "node scripts/db-check.js",
+    "seed": "node scripts/seed.js",
+    "thumbs": "node scripts/assign-thumbnails.js",
+    "thumbs:dry": "node scripts/assign-thumbnails.js --dry"
   },
   "dependencies": {
     "cors": "^2.8.5",

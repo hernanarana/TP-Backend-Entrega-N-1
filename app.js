@@ -6,14 +6,20 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
+// 🔹 NUEVO: auth / JWT
+import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import { initPassport } from './src/config/passport.config.js';
+
 // Routers API
 import productsRouter from './src/routes/products.router.js';
 import cartsRouter from './src/routes/carts.router.js';
+import sessionsRouter from './src/routes/sessions.router.js'; // 🔹 NUEVO
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tp-backend';
 
 // Paths base (ESM)
@@ -23,6 +29,10 @@ const __dirname = path.dirname(__filename);
 // -------------------- Middlewares --------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());          // 🔹 NUEVO
+
+initPassport();                   // 🔹 NUEVO
+app.use(passport.initialize());   // 🔹 NUEVO
 
 // Estáticos (sirve /public y /src/public)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -70,7 +80,8 @@ app.get('/carrito', (_req, res) => {
 });
 
 // -------------------- Rutas API ----------------------
-app.use('/api/products', productsRouter); // GET /api/products?limit=&page=&sort=&query=
+app.use('/api/sessions', sessionsRouter);   // 🔹 NUEVO
+app.use('/api/products', productsRouter);   // GET /api/products?limit=&page=&sort=&query=
 app.use('/api/carts', cartsRouter);
 
 // -------------------- Health -------------------------

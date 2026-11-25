@@ -1,7 +1,15 @@
-// test-mongo.js  (versión rápida, sin .env)
+// test-mongo.js — prueba rápida de conexión a MongoDB Atlas
+// La cadena de conexión se lee de la variable de entorno MONGODB_URI (archivo .env).
+// Nunca escribas usuarios ni contraseñas directamente en el código.
+import 'dotenv/config';
 import mongoose from 'mongoose';
 
-const uri = 'mongodb+srv://hernan:42911242@tp-backend.ednt2vn.mongodb.net/tp-backend?retryWrites=true&w=majority&appName=tp-backend';
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  console.error('❌ Falta la variable MONGODB_URI. Copiá .env.example a .env y completala.');
+  process.exit(1);
+}
 
 console.log('Intentando conectar a MongoDB Atlas...');
 mongoose.connect(uri)
@@ -11,6 +19,6 @@ mongoose.connect(uri)
   })
   .then(() => process.exit(0))
   .catch(err => {
-    console.error('❌ Error de conexión:\n', err);
+    console.error('❌ Error de conexión:\n', err.message);
     process.exit(1);
   });
